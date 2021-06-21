@@ -1,8 +1,7 @@
 ﻿using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 
-namespace Client
+namespace Server
 {
     class Program
     {
@@ -18,20 +17,26 @@ namespace Client
                                      autoDelete: false,
                                      arguments: null);
 
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (model, ea) =>
+                string message = "Hello World!";
+                var st = new Student()
                 {
-                    var body = ea.Body.ToArray();
-                    var message = MessagePack.MessagePackSerializer.Deserialize<Student>(body);//Encoding.UTF8.GetString(body);
-                    Console.WriteLine(" [x] Received {0}", message);
+                    Id = 1,
+                    FirstName = "Name",
+                    LastName = "SecondName",
+                    Hours = 0
                 };
-                channel.BasicConsume(queue: "hello",
-                                     autoAck: true,
-                                     consumer: consumer);
+                var body = MessagePack.MessagePackSerializer.Serialize<Student>(st);//Encoding.UTF8.GetBytes(message);
 
-                Console.WriteLine(" Press [enter] to exit.");
-                Console.ReadLine();
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "hello",
+                                     basicProperties: null,
+                                     body: body);
+                Console.WriteLine(" [x] Sent {0}", message);
             }
+
+            Console.WriteLine(" Press [enter] to exit.");
+            Console.ReadLine();
         }
     }
-}
+    }
+
